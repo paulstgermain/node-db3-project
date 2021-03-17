@@ -9,7 +9,7 @@ const db = require('../../data/db-config');
   }
 */
 const checkSchemeId = async (req, res, next) => {
-  const result = await db('schemes').where('id', id).first();
+  const result = await db('schemes').where('scheme_id', req.params.scheme_id).first();
 
   if (!result) {
     res.status(400).json({ "message": "scheme with scheme_id <actual id> not found" })
