@@ -107,29 +107,27 @@ async function findById(scheme_id) { // EXERCISE B
         .where('schemes.scheme_id', scheme_id)
         .orderBy('steps.step_number', 'ASC');
 
-      return query;
-
-      // if (query[0].step_id !== null) {
-      //   const scheme = {
-      //     scheme_id: query[0].scheme_id,
-      //     scheme_name: query[0].scheme_name,
-      //     steps: query.map(q => {
-      //       return {
-      //         step_id: q.step_id,
-      //         step_number: q.step_number,
-      //         instructions: q.instructions
-      //       }
-      //     })
-      //   }
-      //   return scheme;
-      // } else {
-      //   const noSteps = {
-      //     scheme_id: query[0].scheme_id,
-      //     scheme_name: query[0].scheme_name,
-      //     steps: []
-      //   }
-      //   return noSteps;
-      // }
+      if (query[0].step_id !== null) {
+        const scheme = {
+          scheme_id: query[0].scheme_id,
+          scheme_name: query[0].scheme_name,
+          steps: query.map(q => {
+            return {
+              step_id: q.step_id,
+              step_number: q.step_number,
+              instructions: q.instructions
+            }
+          })
+        }
+        return scheme;
+      } else {
+        const noSteps = {
+          scheme_id: query[0].scheme_id,
+          scheme_name: query[0].scheme_name,
+          steps: []
+        }
+        return noSteps;
+      }
 }
 
 function findSteps(scheme_id) { // EXERCISE C
@@ -153,20 +151,42 @@ function findSteps(scheme_id) { // EXERCISE C
         }
       ]
   */
+
+  return db('schemes')
+      .join('steps', 'schemes.scheme_id', 'steps.scheme_id')
+      .where('schemes.scheme_id', scheme_id)
+      .column('steps.step_id', 'steps.step_number', 'steps.instructions', 'schemes.scheme_name')
+      .orderBy('step_number', 'ASC');
 }
 
-function add(scheme) { // EXERCISE D
+async function add(scheme) { // EXERCISE D
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
   */
+  const id = await db('schemes').insert(scheme);
+
+  return db('schemes')
+    .column('schemes.scheme_id', 'schemes.scheme_name')
+    .where('schemes.scheme_id', id);
+
 }
 
-function addStep(scheme_id, step) { // EXERCISE E
+async function addStep(scheme_id, step) { // EXERCISE E
   /*
     1E- This function adds a step to the scheme with the given `scheme_id`
     and resolves to _all the steps_ belonging to the given `scheme_id`,
     including the newly created one.
   */
+
+  const { step_number, instructions } = step;
+  await db('steps')
+    .insert({
+      "step_number": step_number,
+      "instructions": instructions,
+      "scheme_id": scheme_id
+    });
+
+    return findSteps(scheme_id);
 }
 
 module.exports = {
